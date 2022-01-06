@@ -25,15 +25,18 @@ let private getStartTime (node: HtmlNode) : string =
     |> HtmlNode.innerText
     |> fun x -> x.Replace(" ", "")
 
-let private getImage (node: HtmlNode) : (string * string) =
+let private getImage (node: HtmlNode) : (string * list<string>) =
     let imgs =
         node.Descendants [ "img" ]
         |> Seq.choose (HtmlNode.tryGetAttribute "src")
         |> Seq.map HtmlAttribute.value
         |> Seq.toList
+        
+    let thumbnail = imgs.Item(1)
+    let icons = imgs.GetSlice(Some(2), Some(imgs.Length))
+                |> List.filter (fun img -> img.Contains("yt3.ggpht.com"))
 
-    (imgs.Item(1), imgs.Item(2))
-
+    (thumbnail, icons)
 
 let private getTitle (url: string) =
     async {
@@ -53,7 +56,7 @@ type Schedule =
       name: string
       link: string
       thumbnail: string
-      icon: string }
+      icons: list<string> }
 
 let private toSchedule (html: HtmlNode, day: string) : Async<Schedule> =
     async {
@@ -61,7 +64,7 @@ let private toSchedule (html: HtmlNode, day: string) : Async<Schedule> =
         let! title = getTitle link
         let startTime = getStartTime html
         let name = getName html
-        let (thumbnail, icon) = getImage html
+        let (thumbnail, icons) = getImage html
 
         return
             { title = title
@@ -70,7 +73,7 @@ let private toSchedule (html: HtmlNode, day: string) : Async<Schedule> =
               name = name
               link = link
               thumbnail = thumbnail
-              icon = icon }
+              icons = icons }
     }
 
 let getSchedules (html: HtmlDocument) : seq<Async<Schedule>> =
