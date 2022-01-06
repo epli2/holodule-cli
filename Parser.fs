@@ -47,13 +47,13 @@ let private getTitle (url: string) =
     }
 
 type Schedule =
-    { Title: string
-      Day: string
-      StartTime: string
-      Name: string
-      Link: string
-      Thumbnail: string
-      Icon: string }
+    { title: string
+      day: string
+      startTime: string
+      name: string
+      link: string
+      thumbnail: string
+      icon: string }
 
 let private toSchedule (html: HtmlNode, day: string) : Async<Schedule> =
     async {
@@ -64,13 +64,13 @@ let private toSchedule (html: HtmlNode, day: string) : Async<Schedule> =
         let (thumbnail, icon) = getImage html
 
         return
-            { Title = title
-              Day = day
-              StartTime = startTime
-              Name = name
-              Link = link
-              Thumbnail = thumbnail
-              Icon = icon }
+            { title = title
+              day = day
+              startTime = startTime
+              name = name
+              link = link
+              thumbnail = thumbnail
+              icon = icon }
     }
 
 let getSchedules (html: HtmlDocument) : seq<Async<Schedule>> =
