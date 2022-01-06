@@ -74,30 +74,28 @@ let private toSchedule (html: HtmlNode, day: string) : Async<Schedule> =
     }
 
 let getSchedules (html: HtmlDocument) : seq<Async<Schedule>> =
-    let items =
-        html.CssSelect("div#all div.container div.row")
-        |> Seq.filter (fun x ->
+    let mutable day = ""
+
+    html.CssSelect("div#all div.container div.row")
+    |> Seq.collect (fun x ->
+        let newday =
             x.Descendants [ "div" ]
             |> Seq.tryFind (fun x ->
                 match x.TryGetAttribute("class") with
                 | Some (x) -> (x.Value() = "holodule navbar-text")
                 | _ -> false)
-            |> Option.isSome)
+            |> Option.map HtmlNode.innerText
+            |> Option.map (fun x -> x.Replace(" ", ""))
 
-    items
-    |> Seq.collect (fun x ->
-        let day =
-            x.Descendants [ "div" ]
-            |> Seq.find (fun x ->
-                match x.TryGetAttribute("class") with
-                | Some (x) -> (x.Value() = "holodule navbar-text")
-                | _ -> false)
-            |> HtmlNode.innerText
-            |> fun x -> x.Replace(" ", "")
+        match newday with
+        | Some (d) -> day <- d
+        | _ -> ()
 
         x.Descendants [ "a" ]
         |> Seq.filter (fun x ->
             match x.TryGetAttribute("class") with
             | Some (x) -> (x.Value() = "thumbnail")
             | _ -> false)
-        |> Seq.map (fun x -> toSchedule (x, day)))
+        |> Seq.map (fun x -> (x, day)))
+    |> Seq.distinct
+    |> Seq.map toSchedule
