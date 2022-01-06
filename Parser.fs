@@ -34,7 +34,6 @@ let private getImage (node: HtmlNode) : (string * list<string>) =
         
     let thumbnail = imgs.Item(1)
     let icons = imgs.GetSlice(Some(2), Some(imgs.Length))
-                |> List.filter (fun img -> img.Contains("yt3.ggpht.com"))
 
     (thumbnail, icons)
 
@@ -49,7 +48,7 @@ let private getTitle (url: string) =
             |> fun x -> x.Replace(" - YouTube", "")
     }
 
-type Schedule =
+type ScrapedSchedule =
     { title: string
       day: string
       startTime: string
@@ -58,7 +57,7 @@ type Schedule =
       thumbnail: string
       icons: list<string> }
 
-let private toSchedule (html: HtmlNode, day: string) : Async<Schedule> =
+let private toSchedule (html: HtmlNode, day: string) : Async<ScrapedSchedule> =
     async {
         let link = getLink html
         let! title = getTitle link
@@ -76,7 +75,7 @@ let private toSchedule (html: HtmlNode, day: string) : Async<Schedule> =
               icons = icons }
     }
 
-let getSchedules (html: HtmlDocument) : seq<Async<Schedule>> =
+let getSchedules (html: HtmlDocument) : seq<Async<ScrapedSchedule>> =
     let mutable day = ""
 
     html.CssSelect("div#all div.container div.row")
